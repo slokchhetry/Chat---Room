@@ -3,330 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatRooms</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+    <title>Speakum Chat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
     <style>
-        :root {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --accent: #3b82f6;
-        }
         body {
-            background: var(--bg-primary);
-            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
         }
-        .message-container {
-            height: calc(100vh - 220px);
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--accent) var(--bg-secondary);
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
         }
-        @media (max-width: 640px) {
-            .message-container {
-                height: calc(100vh - 280px);
-            }
-        }
-        .message-container::-webkit-scrollbar {
-            width: 8px;
-        }
-        .message-container::-webkit-scrollbar-track {
-            background: var(--bg-secondary);
-        }
-        .message-container::-webkit-scrollbar-thumb {
-            background-color: var(--accent);
-            border-radius: 4px;
+        .chat-container {
+            background-color: #2d2d2d;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
         }
         .message {
-            animation: fadeInUp 0.3s ease;
+            display: flex;
+            align-items: start;
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease-in;
         }
-        .avatar {
-            transition: transform 0.2s;
+        .message.fade-out {
+            animation: fadeOut 1s ease-out forwards;
         }
-        .avatar:hover {
-            transform: scale(1.1);
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .message-content {
+            background-color: #3d3d3d;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+        }
+        .username {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #00ff9d;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        input, button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3d3d3d;
+            color: white;
+        }
+        input {
+            flex-grow: 1;
+        }
+        button {
+            background-color: #00ff9d;
+            color: #1a1a1a;
+            cursor: pointer;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
         }
     </style>
 </head>
-<body class="text-gray-100">
-    <!-- Landing Page -->
-    <div id="landingPage" class="fixed inset-0 bg-gray-900 flex items-center justify-center p-4">
-        <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full mx-4 animate__animated animate__fadeInDown">
-            <h1 class="text-3xl font-bold mb-6 text-center text-blue-400">Welcome to ChatRooms</h1>
-            <div class="space-y-4">
-                <button onclick="createNewRoom()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded transition duration-200">
-                    Create New Room
-                </button>
-                <div class="text-center text-gray-400">- or -</div>
-                <div class="relative">
-                    <input type="text" id="joinRoomInput" placeholder="Enter Room ID" 
-                           class="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:border-blue-500 focus:outline-none">
-                    <button onclick="joinExistingRoom()" 
-                            class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 hover:bg-blue-700 px-4 py-1 rounded">
-                        Join
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+<body>
+    <div id="root"></div>
 
-    <!-- Login Modal -->
-    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full mx-4 animate__animated animate__fadeInDown">
-            <h2 class="text-2xl font-bold mb-6 text-center">Join Chat Room</h2>
-            <input type="text" id="username" placeholder="Enter your username"
-                   class="w-full p-3 mb-4 bg-gray-700 rounded border border-gray-600 focus:border-blue-500 focus:outline-none">
-            <button onclick="joinRoom()" 
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition duration-200">
-                Join Room
-            </button>
-        </div>
-    </div>
-
-    <!-- Main Chat Interface -->
-    <div id="chatInterface" class="hidden container mx-auto px-4 py-8 max-w-6xl">
-        <!-- Room Info -->
-        <div class="bg-gray-800 rounded-lg p-4 sm:p-6 mb-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div class="w-full sm:w-auto">
-                    <h1 class="text-xl sm:text-2xl font-bold mb-2">Room: <span id="roomName" class="text-blue-400"></span></h1>
-                    <p class="text-gray-400 text-sm">Share this link to invite others:</p>
-                    <div class="flex items-center mt-2">
-                        <input type="text" id="roomLink" readonly
-                               class="bg-gray-700 px-4 py-2 rounded-l text-sm w-full sm:w-auto">
-                        <button onclick="copyLink()" 
-                                class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-r transition duration-200">
-                            <i class="fas fa-copy"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="w-full sm:w-auto text-left sm:text-right">
-                    <button onclick="createNewRoom()" 
-                            class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded font-bold mb-2 w-full transition duration-200">
-                        Create New Room
-                    </button>
-                    <p id="userCount" class="text-gray-400 text-sm">
-                        <i class="fas fa-users"></i> Online: 0
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Messages Container -->
-        <div class="bg-gray-800 rounded-lg p-4 sm:p-6">
-            <div id="messages" class="message-container mb-4 sm:mb-6">
-                <!-- Messages will be inserted here -->
-            </div>
-            <!-- Message Input -->
-            <div class="flex gap-2 sm:gap-4">
-                <input type="text" id="messageInput" placeholder="Type your message..."
-                       class="flex-grow p-3 sm:p-4 bg-gray-700 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none">
-                <button onclick="sendMessage()" 
-                        class="bg-blue-600 hover:bg-blue-700 px-6 sm:px-8 rounded-lg font-bold transition duration-200">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
-        // Initialize Firebase-like functionality with localStorage
-        const db = {
-            rooms: JSON.parse(localStorage.getItem('rooms')) || {},
-            messages: JSON.parse(localStorage.getItem('messages')) || {},
-            users: JSON.parse(localStorage.getItem('users')) || {}
-        };
-        let currentRoom = null;
-        let currentUser = null;
-        let isAdmin = false;
+        // Main App Component
+        const App = () => {
+            // State management using React hooks
+            const [messages, setMessages] = React.useState([]);
+            const [username, setUsername] = React.useState('');
+            const [roomId, setRoomId] = React.useState('');
+            const [isAdmin, setIsAdmin] = React.useState(false);
+            const [newMessage, setNewMessage] = React.useState('');
+            const [profilePic, setProfilePic] = React.useState('');
 
-        // Configure toastr
-        toastr.options = {
-            closeButton: true,
-            positionClass: "toast-bottom-right",
-            timeOut: 3000
-        };
+            // Meme profile pictures
+            const profilePics = [
+                '/api/placeholder/40/40',
+                '/api/placeholder/40/40',
+                '/api/placeholder/40/40',
+                '/api/placeholder/40/40'
+            ];
 
-        // Initialize room from URL
-        function init() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const roomId = urlParams.get('room');
-            
-            if (roomId && db.rooms[roomId]) {
-                currentRoom = roomId;
-                showLoginModal();
-            } else if (roomId) {
-                toastr.error('Room not found!');
-                showLandingPage();
-            } else {
-                showLandingPage();
-            }
-        }
+            // Initialize room and user on component mount
+            React.useEffect(() => {
+                // Get or create room ID from URL
+                const params = new URLSearchParams(window.location.search);
+                const currentRoom = params.get('room') || Math.random().toString(36).substring(7);
+                setRoomId(currentRoom);
 
-        function showLandingPage() {
-            document.getElementById('landingPage').classList.remove('hidden');
-            document.getElementById('loginModal').classList.add('hidden');
-            document.getElementById('chatInterface').classList.add('hidden');
-        }
-
-        function showLoginModal() {
-            document.getElementById('landingPage').classList.add('hidden');
-            document.getElementById('loginModal').classList.remove('hidden');
-            document.getElementById('chatInterface').classList.add('hidden');
-            if (currentRoom) {
-                document.getElementById('roomName').textContent = db.rooms[currentRoom].name;
-                document.getElementById('roomLink').value = window.location.href;
-            }
-        }
-
-        // Join existing room
-        function joinExistingRoom() {
-            const roomId = document.getElementById('joinRoomInput').value.trim();
-            if (roomId && db.rooms[roomId]) {
-                currentRoom = roomId;
-                showLoginModal();
-            } else {
-                toastr.error('Room not found!');
-            }
-        }
-
-        // Create new room
-        function createNewRoom() {
-            const roomId = Math.random().toString(36).substr(2, 9);
-            const roomName = `Room ${Math.floor(Math.random() * 1000)}`;
-            db.rooms[roomId] = {
-                name: roomName,
-                createdAt: new Date().toISOString(),
-                admin: currentUser
-            };
-            db.messages[roomId] = [];
-            saveToStorage();
-            window.location.href = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
-        }
-
-        // Join room
-        function joinRoom() {
-            const username = document.getElementById('username').value.trim();
-            if (username) {
-                currentUser = username;
-                if (db.rooms[currentRoom]?.admin === username) {
-                    isAdmin = true;
+                // Set URL if not already set
+                if (!params.get('room')) {
+                    window.history.pushState({}, '', `?room=${currentRoom}`);
+                    setIsAdmin(true); // First user in room is admin
                 }
-                if (!db.users[currentRoom]) db.users[currentRoom] = {};
-                db.users[currentRoom][username] = {
-                    avatar: `https://api.thecatapi.com/v1/images/search?size=small&timestamp=${new Date().getTime()}`,
-                    joinedAt: new Date().toISOString()
-                };
-                saveToStorage();
-                document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('chatInterface').classList.remove('hidden');
-                loadMessages();
-                setupMessageListener();
-                toastr.success(`Welcome to the chat, ${username}!`);
-            }
-        }
 
-        // Send message
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
-            if (message) {
-                const newMessage = {
-                    id: Date.now(),
-                    text: message,
-                    user: currentUser,
-                    timestamp: new Date().toISOString(),
-                    avatar: db.users[currentRoom][currentUser].avatar
-                };
-                db.messages[currentRoom].push(newMessage);
-                saveToStorage();
-                input.value = '';
-                renderMessage(newMessage);
-                scrollToBottom();
-            }
-        }
+                // Get or create username from localStorage
+                const storedUsername = localStorage.getItem(`speakum_username_${currentRoom}`);
+                if (storedUsername) {
+                    setUsername(storedUsername);
+                }
 
-        // Delete message (admin only)
-        function deleteMessage(messageId) {
-            if (isAdmin) {
-                db.messages[currentRoom] = db.messages[currentRoom].filter(m => m.id !== messageId);
-                saveToStorage();
-                loadMessages();
-                toastr.success('Message deleted');
-            }
-        }
+                // Set random profile picture
+                setProfilePic(profilePics[Math.floor(Math.random() * profilePics.length)]);
 
-        // Render single message
-        function renderMessage(message) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message flex items-start gap-4 mb-4 sm:mb-6 ${message.user === currentUser ? 'flex-row-reverse' : ''}`;
-            messageDiv.innerHTML = `
-                <img src="${message.avatar}" alt="${message.user}" class="avatar w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover">
-                <div class="${message.user === currentUser ? 'text-right' : ''}">
-                    <div class="flex items-center gap-2 mb-1 ${message.user === currentUser ? 'justify-end' : ''}">
-                        <span class="font-bold text-blue-400">${message.user}</span>
-                        <span class="text-xs text-gray-400">
-                            ${new Date(message.timestamp).toLocaleTimeString()}
-                        </span>
-                        ${isAdmin ? `
-                            <button onclick="deleteMessage(${message.id})" class="text-red-500 hover:text-red-600">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        ` : ''}
+                // Load existing messages
+                const storedMessages = JSON.parse(localStorage.getItem(`speakum_messages_${currentRoom}`) || '[]');
+                setMessages(storedMessages);
+
+                // Set up message update interval
+                const interval = setInterval(() => {
+                    const updatedMessages = JSON.parse(localStorage.getItem(`speakum_messages_${currentRoom}`) || '[]');
+                    setMessages(updatedMessages);
+                }, 1000);
+
+                return () => clearInterval(interval);
+            }, []);
+
+            // Handle username submission
+            const handleUsernameSubmit = (e) => {
+                e.preventDefault();
+                if (username.trim()) {
+                    localStorage.setItem(`speakum_username_${roomId}`, username);
+                }
+            };
+
+            // Handle message submission
+            const handleMessageSubmit = (e) => {
+                e.preventDefault();
+                if (newMessage.trim() && username) {
+                    const message = {
+                        id: Date.now(),
+                        text: newMessage,
+                        username,
+                        profilePic,
+                        timestamp: Date.now(),
+                        temporary: false
+                    };
+
+                    const updatedMessages = [...messages, message];
+                    setMessages(updatedMessages);
+                    localStorage.setItem(`speakum_messages_${roomId}`, JSON.stringify(updatedMessages));
+                    setNewMessage('');
+                }
+            };
+
+            // Handle message deletion (admin only)
+            const handleDeleteMessage = (messageId) => {
+                if (isAdmin) {
+                    const updatedMessages = messages.filter(msg => msg.id !== messageId);
+                    setMessages(updatedMessages);
+                    localStorage.setItem(`speakum_messages_${roomId}`, JSON.stringify(updatedMessages));
+                }
+            };
+
+            // Render login form if username not set
+            if (!username) {
+                return (
+                    <div className="container">
+                        <h1>Welcome to Speakum</h1>
+                        <form onSubmit={handleUsernameSubmit}>
+                            <input
+                                type="text"
+                                placeholder="Choose your username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                            />
+                            <button type="submit">Join Chat</button>
+                        </form>
                     </div>
-                    <div class="bg-gray-700 rounded-lg p-2 sm:p-3 inline-block max-w-xs sm:max-w-xl break-words">
-                        ${message.text}
+                );
+            }
+
+            return (
+                <div className="container">
+                    <h1>Speakum - Room: {roomId}</h1>
+                    <div className="chat-container">
+                        {messages.map(message => (
+                            <div key={message.id} className={`message ${message.temporary ? 'fade-out' : ''}`}>
+                                <img src={message.profilePic} alt="Profile" className="profile-pic" />
+                                <div className="message-content">
+                                    <div className="username">{message.username}</div>
+                                    <div>{message.text}</div>
+                                    {isAdmin && (
+                                        <button onClick={() => handleDeleteMessage(message.id)}>Delete</button>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
                     </div>
+                    <form onSubmit={handleMessageSubmit} className="input-container">
+                        <input
+                            type="text"
+                            placeholder="Type your message..."
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                        />
+                        <button type="submit">Send</button>
+                    </form>
                 </div>
-            `;
-            document.getElementById('messages').appendChild(messageDiv);
-        }
+            );
+        };
 
-        // Load all messages
-        function loadMessages() {
-            const messagesDiv = document.getElementById('messages');
-            messagesDiv.innerHTML = '';
-            db.messages[currentRoom].forEach(renderMessage);
-            scrollToBottom();
-            updateUserCount();
-        }
-
-        // Utility functions
-        function scrollToBottom() {
-            const messagesDiv = document.getElementById('messages');
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-
-        function copyLink() {
-            const linkInput = document.getElementById('roomLink');
-            linkInput.select();
-            document.execCommand('copy');
-            toastr.success('Link copied to clipboard!');
-        }
-
-        function updateUserCount() {
-            const count = Object.keys(db.users[currentRoom] || {}).length;
-            document.getElementById('userCount').innerHTML = `<i class="fas fa-users"></i> Online: ${count}`;
-        }
-
-        function saveToStorage() {
-            localStorage.setItem('rooms', JSON.stringify(db.rooms));
-            localStorage.setItem('messages', JSON.stringify(db.messages));
-            localStorage.setItem('users', JSON.stringify(db.users));
-        }
-
-        function setupMessageListener() {
-            document.getElementById('messageInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') sendMessage();
-            });
-        }
-
-        // Initialize app
-        init();
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
