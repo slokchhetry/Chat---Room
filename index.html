@@ -14,53 +14,72 @@
             --bg-secondary: #1e293b;
             --accent: #3b82f6;
         }
-        
         body {
             background: var(--bg-primary);
             min-height: 100vh;
         }
-
         .message-container {
             height: calc(100vh - 220px);
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: var(--accent) var(--bg-secondary);
         }
-
+        @media (max-width: 640px) {
+            .message-container {
+                height: calc(100vh - 280px);
+            }
+        }
         .message-container::-webkit-scrollbar {
             width: 8px;
         }
-
         .message-container::-webkit-scrollbar-track {
             background: var(--bg-secondary);
         }
-
         .message-container::-webkit-scrollbar-thumb {
             background-color: var(--accent);
             border-radius: 4px;
         }
-
         .message {
             animation: fadeInUp 0.3s ease;
         }
-
         .avatar {
             transition: transform 0.2s;
         }
-
         .avatar:hover {
             transform: scale(1.1);
         }
     </style>
 </head>
 <body class="text-gray-100">
+    <!-- Landing Page -->
+    <div id="landingPage" class="fixed inset-0 bg-gray-900 flex items-center justify-center p-4">
+        <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full mx-4 animate__animated animate__fadeInDown">
+            <h1 class="text-3xl font-bold mb-6 text-center text-blue-400">Welcome to ChatRooms</h1>
+            <div class="space-y-4">
+                <button onclick="createNewRoom()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded transition duration-200">
+                    Create New Room
+                </button>
+                <div class="text-center text-gray-400">- or -</div>
+                <div class="relative">
+                    <input type="text" id="joinRoomInput" placeholder="Enter Room ID" 
+                           class="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:border-blue-500 focus:outline-none">
+                    <button onclick="joinExistingRoom()" 
+                            class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 hover:bg-blue-700 px-4 py-1 rounded">
+                        Join
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Login Modal -->
-    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full mx-4 animate__animated animate__fadeInDown">
             <h2 class="text-2xl font-bold mb-6 text-center">Join Chat Room</h2>
-            <input type="text" id="username" placeholder="Enter your username" 
+            <input type="text" id="username" placeholder="Enter your username"
                    class="w-full p-3 mb-4 bg-gray-700 rounded border border-gray-600 focus:border-blue-500 focus:outline-none">
-            <button onclick="joinRoom()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition duration-200">
+            <button onclick="joinRoom()" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition duration-200">
                 Join Room
             </button>
         </div>
@@ -69,39 +88,43 @@
     <!-- Main Chat Interface -->
     <div id="chatInterface" class="hidden container mx-auto px-4 py-8 max-w-6xl">
         <!-- Room Info -->
-        <div class="bg-gray-800 rounded-lg p-6 mb-6 flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold mb-2">Room: <span id="roomName" class="text-blue-400"></span></h1>
-                <p class="text-gray-400">Share this link to invite others:</p>
-                <div class="flex items-center mt-2">
-                    <input type="text" id="roomLink" readonly 
-                           class="bg-gray-700 px-4 py-2 rounded-l text-sm flex-grow">
-                    <button onclick="copyLink()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-r transition duration-200">
-                        <i class="fas fa-copy"></i>
-                    </button>
+        <div class="bg-gray-800 rounded-lg p-4 sm:p-6 mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="w-full sm:w-auto">
+                    <h1 class="text-xl sm:text-2xl font-bold mb-2">Room: <span id="roomName" class="text-blue-400"></span></h1>
+                    <p class="text-gray-400 text-sm">Share this link to invite others:</p>
+                    <div class="flex items-center mt-2">
+                        <input type="text" id="roomLink" readonly
+                               class="bg-gray-700 px-4 py-2 rounded-l text-sm w-full sm:w-auto">
+                        <button onclick="copyLink()" 
+                                class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-r transition duration-200">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div class="text-right">
-                <button onclick="createNewRoom()" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded font-bold mb-2 w-full transition duration-200">
-                    Create New Room
-                </button>
-                <p id="userCount" class="text-gray-400 text-sm">
-                    <i class="fas fa-users"></i> Online: 0
-                </p>
+                <div class="w-full sm:w-auto text-left sm:text-right">
+                    <button onclick="createNewRoom()" 
+                            class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded font-bold mb-2 w-full transition duration-200">
+                        Create New Room
+                    </button>
+                    <p id="userCount" class="text-gray-400 text-sm">
+                        <i class="fas fa-users"></i> Online: 0
+                    </p>
+                </div>
             </div>
         </div>
 
         <!-- Messages Container -->
-        <div class="bg-gray-800 rounded-lg p-6">
-            <div id="messages" class="message-container mb-6">
+        <div class="bg-gray-800 rounded-lg p-4 sm:p-6">
+            <div id="messages" class="message-container mb-4 sm:mb-6">
                 <!-- Messages will be inserted here -->
             </div>
-
             <!-- Message Input -->
-            <div class="flex gap-4">
-                <input type="text" id="messageInput" placeholder="Type your message..." 
-                       class="flex-grow p-4 bg-gray-700 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none">
-                <button onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-700 px-8 rounded-lg font-bold transition duration-200">
+            <div class="flex gap-2 sm:gap-4">
+                <input type="text" id="messageInput" placeholder="Type your message..."
+                       class="flex-grow p-3 sm:p-4 bg-gray-700 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none">
+                <button onclick="sendMessage()" 
+                        class="bg-blue-600 hover:bg-blue-700 px-6 sm:px-8 rounded-lg font-bold transition duration-200">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
@@ -117,7 +140,6 @@
             messages: JSON.parse(localStorage.getItem('messages')) || {},
             users: JSON.parse(localStorage.getItem('users')) || {}
         };
-
         let currentRoom = null;
         let currentUser = null;
         let isAdmin = false;
@@ -136,13 +158,39 @@
             
             if (roomId && db.rooms[roomId]) {
                 currentRoom = roomId;
-                document.getElementById('roomName').textContent = db.rooms[roomId].name;
+                showLoginModal();
+            } else if (roomId) {
+                toastr.error('Room not found!');
+                showLandingPage();
+            } else {
+                showLandingPage();
+            }
+        }
+
+        function showLandingPage() {
+            document.getElementById('landingPage').classList.remove('hidden');
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('chatInterface').classList.add('hidden');
+        }
+
+        function showLoginModal() {
+            document.getElementById('landingPage').classList.add('hidden');
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('chatInterface').classList.add('hidden');
+            if (currentRoom) {
+                document.getElementById('roomName').textContent = db.rooms[currentRoom].name;
                 document.getElementById('roomLink').value = window.location.href;
-            } else if (!roomId) {
-                createNewRoom();
+            }
+        }
+
+        // Join existing room
+        function joinExistingRoom() {
+            const roomId = document.getElementById('joinRoomInput').value.trim();
+            if (roomId && db.rooms[roomId]) {
+                currentRoom = roomId;
+                showLoginModal();
             } else {
                 toastr.error('Room not found!');
-                createNewRoom();
             }
         }
 
@@ -150,16 +198,13 @@
         function createNewRoom() {
             const roomId = Math.random().toString(36).substr(2, 9);
             const roomName = `Room ${Math.floor(Math.random() * 1000)}`;
-            
             db.rooms[roomId] = {
                 name: roomName,
                 createdAt: new Date().toISOString(),
                 admin: currentUser
             };
-            
             db.messages[roomId] = [];
             saveToStorage();
-            
             window.location.href = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
         }
 
@@ -171,18 +216,14 @@
                 if (db.rooms[currentRoom]?.admin === username) {
                     isAdmin = true;
                 }
-                
-                // Generate random cat avatar
                 if (!db.users[currentRoom]) db.users[currentRoom] = {};
                 db.users[currentRoom][username] = {
                     avatar: `https://api.thecatapi.com/v1/images/search?size=small&timestamp=${new Date().getTime()}`,
                     joinedAt: new Date().toISOString()
                 };
-                
                 saveToStorage();
                 document.getElementById('loginModal').classList.add('hidden');
                 document.getElementById('chatInterface').classList.remove('hidden');
-                
                 loadMessages();
                 setupMessageListener();
                 toastr.success(`Welcome to the chat, ${username}!`);
@@ -193,7 +234,6 @@
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
-            
             if (message) {
                 const newMessage = {
                     id: Date.now(),
@@ -202,7 +242,6 @@
                     timestamp: new Date().toISOString(),
                     avatar: db.users[currentRoom][currentUser].avatar
                 };
-                
                 db.messages[currentRoom].push(newMessage);
                 saveToStorage();
                 input.value = '';
@@ -224,11 +263,9 @@
         // Render single message
         function renderMessage(message) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message flex items-start gap-4 mb-6 ${message.user === currentUser ? 'flex-row-reverse' : ''}`;
-            
+            messageDiv.className = `message flex items-start gap-4 mb-4 sm:mb-6 ${message.user === currentUser ? 'flex-row-reverse' : ''}`;
             messageDiv.innerHTML = `
-                <img src="${message.avatar}" alt="${message.user}" 
-                     class="avatar w-10 h-10 rounded-full object-cover">
+                <img src="${message.avatar}" alt="${message.user}" class="avatar w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover">
                 <div class="${message.user === currentUser ? 'text-right' : ''}">
                     <div class="flex items-center gap-2 mb-1 ${message.user === currentUser ? 'justify-end' : ''}">
                         <span class="font-bold text-blue-400">${message.user}</span>
@@ -241,12 +278,11 @@
                             </button>
                         ` : ''}
                     </div>
-                    <div class="bg-gray-700 rounded-lg p-3 inline-block max-w-xl">
+                    <div class="bg-gray-700 rounded-lg p-2 sm:p-3 inline-block max-w-xs sm:max-w-xl break-words">
                         ${message.text}
                     </div>
                 </div>
             `;
-            
             document.getElementById('messages').appendChild(messageDiv);
         }
 
